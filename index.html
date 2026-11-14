@@ -1,0 +1,82 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Mess Menu</title>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#cdd2d6;--tray:#a9b0b6;--cell:#eceff1;--ink:#1c2833;--mute:#58646e;--hot:#e8a317;--green:#3f7a3a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#1b2228;--tray:#3a444c;--cell:#27313a;--ink:#e8ecef;--mute:#9aa7b1;--hot:#f0b83a;--green:#7fc276}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Figtree,system-ui,sans-serif}
+main{max-width:1000px;margin:0 auto;padding:20px 14px 40px}
+h1{font:900 clamp(44px,11vw,84px)/.9 "Big Shoulders Display",Impact,sans-serif;margin:0;letter-spacing:.5px}
+.sub{color:var(--mute);margin:8px 0 18px}
+.strip{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 12px}
+.strip button{flex:none;width:64px;padding:8px 0;border:2px solid var(--tray);border-radius:50%/42%;background:var(--cell);color:var(--ink);font:600 13px Figtree,sans-serif;cursor:pointer}
+.strip button b{display:block;font:700 22px "Big Shoulders Display",Impact,sans-serif}
+.strip button[aria-pressed=true]{background:var(--hot);border-color:var(--hot);color:#1c2833}
+.strip button:focus-visible,summary:focus-visible{outline:3px solid var(--green);outline-offset:2px}
+.title{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+.title h2{font:900 34px "Big Shoulders Display",Impact,sans-serif;margin:0}
+.tray{background:var(--tray);padding:14px;border-radius:30px;display:grid;gap:12px;grid-template-columns:1fr 1.3fr;grid-template-areas:"b l" "s l" "d d"}
+.c{background:var(--cell);border-radius:26px 26px 40px 18px;padding:16px 18px 18px;box-shadow:inset 0 3px 8px rgba(0,0,0,.22)}
+.c:nth-child(2){border-radius:18px 40px 26px 26px}.c:nth-child(3){border-radius:40px 18px 26px 26px}.c:nth-child(4){border-radius:26px}
+.c.now{box-shadow:inset 0 3px 8px rgba(0,0,0,.22),0 0 0 4px var(--hot)}
+.b{grid-area:b}.l{grid-area:l}.s{grid-area:s}.d{grid-area:d}
+.c h3{font:700 26px "Big Shoulders Display",Impact,sans-serif;margin:0}.t{font-size:13px;color:var(--mute);margin:0 0 8px}
+.c ul{margin:0 0 8px;padding-left:18px}.c li{margin:2px 0}
+.k{font-weight:600;color:var(--green);font-size:14px;margin:8px 0 2px}
+.dd{display:grid;grid-template-columns:1fr 1fr;gap:0 24px}
+.note{color:var(--mute);font-size:13px;margin-top:14px}
+details{margin-top:22px;background:var(--cell);border-radius:20px;padding:14px 18px}summary{cursor:pointer;font:700 22px "Big Shoulders Display",Impact,sans-serif}
+.c{position:relative}.c h3,.c h3+.t{padding-right:72px}.art{position:absolute;top:12px;right:14px;width:64px;height:64px}.art *{stroke:var(--ink);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}.art .f{fill:var(--hot);stroke:none}.art .g{fill:var(--green);stroke:none}.st{animation:st 2.4s ease-in-out infinite}@keyframes st{50%{transform:translateY(-4px);opacity:.4}}@media(prefers-reduced-motion:reduce){.st{animation:none}}.live{display:inline-block;background:var(--ink);color:var(--cell);padding:4px 14px;border-radius:14px 4px 14px 4px;font:700 18px "Big Shoulders Display",Impact,sans-serif;margin:0 0 14px}
+@media(max-width:700px){.tray{grid-template-columns:1fr;grid-template-areas:"b" "l" "s" "d"}.dd{grid-template-columns:1fr}}
+</style></head><body><main>
+<h1>What’s in<br>the mess</h1><p class="sub" id="sub"></p>
+<div class="strip" id="strip" role="group" aria-label="Pick a day"></div>
+<div class="title"><h2 id="dt"></h2><span id="cy" class="t"></span></div>
+<div id="live"></div><div class="tray" id="tray"></div>
+<p class="note">Lunch and dinner were typed in from a PDF whose layout was scrambled, so check anything odd against the printed menu. The seasonal vegetable is listed in the menu’s Nov–Feb column. Menu can change after student committee feedback.</p>
+<details><summary>Special food services 2026–27</summary><ul>
+<li>Soft food facility, packed breakfast option and lunch box delivery: opt in through UMS → Administrative → Residential Services → Special Food Services.</li>
+<li>Fasting and satvik meals during fasting periods.</li><li>Warm drinking water at the mess in winters.</li>
+<li>Extra milk and fresh fruit at the café, cash only.</li></ul></details>
+</main><script>
+const D=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],DF=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+// each day: breakfast | snacks | lunch South ; North | dinner South ; North ; dessert  (items split by /)
+const M=[
+["Stuffed mix prantha, packed curd/Cold sandwich, ketchup/Mysore bonda, tomato chutney/White bread, jam","Bread roll, ketchup","Kara kuzhambu, cabbage poriyal, puliyodharai;Pindi chhole, aloo pyaz masaledar, plain rice, boondi raita, roti & bhatura, pickled salad","Mysore sambhar, seasonal veg, plain rice;Moong chhilka dal, matar nutri, bhuna onion pulao, roti, fryums","Gulab jamun"],
+["Aloo prantha, pickle/Veg stuffed toast, ketchup/Idli with sambhar, coconut chutney/Milk dalia/Brown bread, jam","Vada pav, ketchup","Mudha pappu, tomato meal maker, plain rice;Dal milijuli, seasonal veg, veg pulao, plain curd, roti","Majjiga pulusu, donda kaya fry, soya biryani;Yellow dal fry, palak/kadai paneer, plain rice, roti & missi roti, green salad","Semiya kheer"],
+["Poori, aloo curry, black chana masala/Tomato bath, peanut chutney/White bread, jam","Bombay sandwich, ketchup","Vankaya curry, mor kuzhambu, lemon rice;Rajma, mix veg, plain rice, fruit raita, roti","Beerakaya pappu, vada curry, plain rice;Sabut masoor dal, mushroom matar/methi malai matar, veg dum biryani, roti, green salad","Besan burfi"],
+["Kulcha (toasted), chana/matar gravy/Vermicelli upma, ketchup/Mix veg utthapam, coconut chutney/Vegetable dalia/Brown bread, jam","Hakka noodles, ketchup","Tomato pappu, veg 65/mirchi bajji, bisi belle bath;Yellow dal fry, seasonal veg, jeera onion pulao, lauki mint raita, roti","Tamarind rasam, potato peas poriyal, plain rice;Maah ki dal, aloo baingan chokha, jeera rice, roti/litti, fryums","Rasgulla"],
+["Plain prantha, aloo bhujia/Veg macaroni, ketchup/Minapa punugulu, tomato chutney/White bread, jam","Bread pakoda, ketchup","Pachi pulusu, majjiga pulusu;Punjabi kadhi pakoda, aloo matar gravy, plain rice, roti, seasonal veg","Kandhi pappu, plain rice;Dal palak, paneer do pyaza, matar pulao, roti, green salad","Moong dal halwa / ice cream"],
+["Stuffed mooli/onion prantha, packed curd/Aloo bonda, ketchup/Veg rawa upma, tomato gojju/Mix dal sprouts/Brown bread, jam","Samosa, ketchup","Sambhar, plain rice;Black chana, mix veg kofta, veg pulao, mix-veg raita, roti","Meal maker curry, tomato rasam, tomato rice;Arhar dal, mix veg, plain rice, roti & ajwain roti, fryums","Balushahi"],
+["Soya paneer prantha, pickle/Indori poha, ketchup/Medu vada, sambhar, peanut chutney/White bread, jam","Veg coleslaw sandwich, green chutney","Senaga pappu, bagara baingan, paruppu urundai kulambu, khuska;Matar paneer/matar mushroom, seasonal veg, plain rice, roti, dahi bhalla, green salad","Vengaya sambhar, artikai vepudu, soya & matar dum biryani;Rajma, aloo shimla mirch, plain rice, roti, green salad","Kheer"],
+["Stuffed mix prantha, pickle/Mangalore bajji, coriander coconut chutney/Hot pongal, veg sambhar/Brown bread, jam","Veg bajji, green chutney","Garlic pepper rasam, gutti vankaya, tomato rice;Pindi chhole, khatta meetha petha, jeera rice, plain curd, roti & bhatura, pickled onion","Thakkali sambhar, seasonal veg, plain rice;Hari moong dal, nutri chilly, veg pulao, roti, fryums","Suji halwa"],
+["Stuffed aloo/mooli methi prantha, packed curd/Vermicelli upma, ketchup/Minapa punugulu, tomato chutney/Moong sprouts/White bread, jam","Bhel poori, imly chutney","Chamagadda pulusu, vegetable sagu, curd rice;Dal makhni, seasonal veg, plain rice, cucumber/ghiya raita, roti","Tomato pappu, aloo gadda vepudu, chitranna rice;Yellow moong dal, seasonal veg, plain rice, roti, green salad","Coconut laddu"],
+["Plain prantha, hing jeera aloo/Sweet dalia/Masala veg idli, coconut chutney/Brown bread, jam","Pav bhaji","Drumstick sambhar, potato 65, coconut rice;Lobia dal, mix veg, plain rice, mix-veg raita, roti","Beerakaya pappu, vegetable kurma, Hyderabadi biryani;Maah chana dal, paneer butter masala, plain rice, roti & spinach roti, fryums","Gulab jamun"],
+["Poori, aloo chana curry/Cold sandwich, pickled onion/Veg rawa upma, tomato chutney/Soyaseed sprouts/White bread, jam","Kachouri, aloo sabji","Tamarind rasam, mushroom Chettinad curry, pudina rice;Sabut masoor dal, seasonal veg, plain rice, boondi raita, roti","Pasi paruppu sambar, donda kaya fry, puliyodharai;Rajma rasila, aloo matar dry, veg pulao, roti, green salad","Besan barfi"],
+["Missa prantha, pickle/Veg macaroni, ketchup/Idli with sambhar, coconut chutney/Brown bread, jam","Dabeli, imly chutney","Pappu charu, soya biryani;Punjabi kadhi pakoda, dum aloo, plain rice, roti, seasonal veg","Senaga pappu, plain rice;White chana, manchurian, fried rice/noodles, roti, green salad","Boondi laddu"],
+["Plain prantha, soya paneer bhurji/Aloo bonda, coconut chutney/Vermicelli upma, ketchup/White bread, jam","Hakka noodles","Mysore sambhar, plain rice;Dal palak, soya chaap masala, jeera rice, plain curd, roti","Avial, meal maker curry, plain rice;Dal makhni, seasonal veg, vegetable khichdi, roti & ajwain roti, green salad","Gajar ka halwa / ice cream"],
+["Stuffed gobhi/onion prantha, packed curd/Indori poha, ketchup/Medu vada, sambhar, peanut chutney/Mix dal sprouts/Brown bread, jam","Not clear in the PDF","Veg 65/cabbage 65, cabbage pappu, Andhra veg biryani;Rajma, kadai paneer, plain rice, roti","Kerala urulai roast, pepper rasam, bisi belle bath;Panchratani dal, mix veg, plain rice, roti, fryums","Fruit custard"]];
+const T={w:["7:30–9:30 am","11:30 am–3:00 pm","5:00–6:30 pm","7:30–9:30 pm"],h:["8:00–10:00 am","12:30–3:00 pm","5:00–6:30 pm","7:30–9:30 pm"]};
+const R=[[450,570],[690,900],[1020,1110],[1170,1290]],hol=[[480,600],[750,900],[1020,1110],[1170,1290]];
+const A=new Date(2026,10,8),day=864e5,now=new Date(),t0=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+const li=s=>"<ul>"+s.split(", ").filter(Boolean).map(x=>"<li>"+x[0].toUpperCase()+x.slice(1)+"</li>").join("")+"</ul>";
+const C=x=>x.trim()[0].toUpperCase()+x.trim().slice(1);const ul=s=>"<ul>"+s.split(", ").map(x=>"<li>"+C(x)+"</li>").join("")+"</ul>";const bl=s=>"<ul>"+s.replace(/(mooli|aloo|gobhi)\/(onion|mooli)/g,"$1 or $2").split("/").map(x=>"<li>"+C(x)+"</li>").join("")+"</ul>";
+const ART=['<path class="f" d="M19.6 31h24.8l-1.7 19a3 3 0 0 1-3 3H24.3a3 3 0 0 1-3-3z"/><path d="M18 22h28l-3 28a4 4 0 0 1-4 3H25a4 4 0 0 1-4-3z"/><path class="st" d="M26 8c-3 4 3 5 0 9M34 8c-3 4 3 5 0 9"/>','<circle cx="32" cy="36" r="22"/><circle class="f" cx="24" cy="31" r="6"/><circle class="g" cx="40" cy="31" r="6"/><path d="M22 46q10 6 20 0"/><path class="st" d="M30 6c-2 3 2 4 0 7"/>','<path d="M8 52 32 10l24 42z"/><path class="f" d="M32 24 22 42h20z"/>','<path d="M42 10a20 20 0 1 0 12 30 16 16 0 0 1-12-30z"/><circle class="f" cx="50" cy="50" r="6"/>'];let sel=0;
+function idx(d){return(((Math.round((d-A)/day))%14)+14)%14}
+function show(){const d=new Date(t0.getTime()+sel*day),i=idx(d),m=M[i],dw=i%7,sun=dw===0,tm=sun?T.h:T.w,rg=sun?hol:R;
+const mins=now.getHours()*60+now.getMinutes();let cur=-1;if(sel===0)for(let k=0;k<4;k++)if(mins<rg[k][1]){cur=k;break;}
+const cof=[9,10,11,0,1,2].includes(d.getMonth())?"Tea and coffee":"Tea and a cold drink";
+const sp=s=>{const p=s.split(";");return`<div class="k">South Indian</div>${ul(p[0])}<div class="k">North Indian</div>${ul(p[1])}`};
+const dn=m[3].split(";");
+const c=(k,cl,n,body)=>`<section class="c ${cl}${cur===k?" now":""}"><svg class="art" viewBox="0 0 64 64" aria-hidden="true">${ART[k]}</svg><h3>${n}</h3><p class="t">${tm[k]}${cur===k?" · on now or next":""}</p>${body}</section>`;
+document.getElementById("dt").textContent=DF[d.getDay()]+", "+d.getDate()+" "+d.toLocaleString("en",{month:"long"});
+const nm=["Breakfast","Lunch","Evening snacks","Dinner"],f=x=>Math.floor(x/60)+"h "+x%60+"m";document.getElementById("live").innerHTML=sel||cur<0?"":`<span class="live">${mins>=rg[cur][0]?nm[cur]+" is on, closes in "+f(rg[cur][1]-mins):nm[cur]+" opens in "+f(rg[cur][0]-mins)}</span>`;document.getElementById("cy").textContent="Menu "+(Math.floor(i/7)+1)+" of 2 · "+DF[dw];
+document.getElementById("tray").innerHTML=c(0,"b","Breakfast",bl(m[0])+"<p class=t>Jam, masala tea, coffee</p>")+
+c(1,"l","Lunch",sp(m[2]))+c(2,"s","Evening snacks",ul(m[1])+`<p class="t">${cof}</p>`)+
+c(3,"d","Dinner",`<div class="dd"><div><div class="k">South Indian</div>${ul(dn[0])}</div><div><div class="k">North Indian</div>${ul(dn[1])}</div></div><div class="k">Dessert</div>${ul(m[4])}`);
+document.querySelectorAll("#strip button").forEach((b,j)=>b.setAttribute("aria-pressed",j===sel));}
+document.getElementById("strip").innerHTML=[...Array(14)].map((_,j)=>{const d=new Date(t0.getTime()+j*day);return`<button data-j="${j}" aria-label="${DF[d.getDay()]} ${d.getDate()}">${j?D[d.getDay()]:"Today"}<b>${d.getDate()}</b></button>`}).join("");
+document.getElementById("strip").onclick=e=>{const b=e.target.closest("button");if(b){sel=+b.dataset.j;show()}};
+document.getElementById("sub").textContent="Boys hostel mess, 2026–27. Pick a day to see all four meals.";
+show();
+</script></body></html>
